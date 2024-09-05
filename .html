@@ -9,94 +9,1245 @@
             // Abre a página do Twilio em uma nova aba
             window.open("https://flex.twilio.com/teams/tasks/WRf7e48e680770dcee37d1672b612d0500", "_blank");
 
-            // Adiciona o seu script personalizado após a página abrir
             (function() {
-                const style = document.createElement('style');
-                style.type = 'text/css';
-                style.innerHTML = `
-                    .blinking {
-                        animation: blinkingText 1s infinite;
-                    }
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = `
+        .blinking {
+            animation: blinkingText 1s infinite;
+        }
+        
+        @keyframes blinkingText {
+            0% { color: #ff0000; }
+            50% { color: transparent; }
+            100% { color: #ff0000; }
+        }
 
-                    @keyframes blinkingText {
-                        0% { color: #ff0000; }
-                        50% { color: transparent; }
-                        100% { color: #ff0000; }
-                    }
+        #fontControlContainer {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
 
-                    /* Seu CSS personalizado aqui... */
-                    /* Pode incluir mais estilos ou funcionalidades */
-                `;
-                document.head.appendChild(style);
+        #resetButton {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
 
-                let fontSize = 15;
-                let graphFontSize = 14; // Tamanho de fonte para o gráfico
-                let alertThresholdMinutes = 10;
-                let currentDate = new Date().toLocaleDateString();
-                let taskCountsByHour = loadTimelineData();  // Carrega a contagem de tasks por hora do localStorage
-                let closedTasksByHour = loadClosedTaskData(); // Carrega a contagem de tasks encerradas por hora
+       #closeButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
 
-                const collaborators = [
-                    { id: '#WK2ad4aa20cf6d8dc4770d1c737d29d029', name: 'Janaina Pereira' },
-                    { id: '#WKa826cefc2a4cab9bd9bc646555f89175', name: 'Marina Deodato' },
-                    { id: '#WK70bea86d7b208e4954b261354d0b9a37', name: 'Thaiany Sara' },
-                    { id: '#WKbc92d49dffb56002d7b347463d6a2dbd', name: 'Patrícia Monteiro' },
-                    { id: '#WK81f209e64aeb85182285093b371d3b23', name: 'Ariane Loureiro' },
-                    { id: '#WKef989aa8b1b66b44a36b70e4919cb6f9', name: 'Emanuelly F.' },
-                    { id: '#WK7783140c8c8b5574cbda415a29eb7663', name: 'Alesandra Nascimento' },
-                    { id: '#WK1483b43f8e92ab41c29aab7e9e930b6a', name: 'Rafael Bandeira' },
-                ];
+        #alertToggleButton {
+             position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 160px;
+            height: 40px;
+        }
 
-                const previousChatCounts = {};
-                const newTaskTimes = {};
-                const closedTaskTimes = {};
-                const newTaskStyles = {};
-                const closedTaskStyles = {};
-                let clientsServed = {};
-                const closedTaskCounts = {};
-                let isAlertActive = true;
-                let sortColumnIndex = -1;
-                let sortDirection = 'asc';
+        #slotsButton {
+            position: absolute;
+            bottom: 20px;
+            left: 120px;
+            width: 120px;
+            height: 40px;
+        }
 
-                // Função para criar o modal
-                function createModal() {
-                    const modal = document.createElement('div');
-                    modal.id = 'modal';
-                    modal.style.position = 'fixed';
-                    modal.style.top = '50px';
-                    modal.style.left = '50px';
-                    modal.style.width = '1100px';
-                    modal.style.height = '600px';
-                    modal.style.backgroundColor = '#1d1d1d';
-                    modal.style.border = '1px solid #000';
-                    modal.style.padding = '20px';
-                    modal.style.zIndex = '1000';
-                    modal.style.overflow = 'hidden';
-                    modal.style.borderRadius = '10px';
-                    modal.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.7)';
-                    modal.style.color = '#fff';
-                    modal.style.fontSize = `${fontSize}px`;
-                    modal.style.resize = 'both'; // Permitir redimensionamento do modal
+        #openConversationsButton {
+            position: absolute;
+            bottom: 20px;
+            left: 260px;
+            width: 160px;
+            height: 40px;
+        }
 
-                    // Código do modal continua aqui...
-                    document.body.appendChild(modal);
-                }
+        #agendaButton {
+            position: absolute;
+            bottom: 20px;
+            left: 440px;
+            width: 160px;
+            height: 40px;
+        }
 
-                // Funções auxiliares
-                function loadTimelineData() {
-                    const savedData = localStorage.getItem('taskCountsByHour');
-                    return savedData ? JSON.parse(savedData) : Array(10).fill(0);
-                }
+        #alertThresholdContainer {
+            position: absolute;
+            top: 10px;
+            right: 80px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-                function loadClosedTaskData() {
-                    const savedData = localStorage.getItem('closedTasksByHour');
-                    return savedData ? JSON.parse(savedData) : Array(10).fill(0);
-                }
+        #alertThresholdInput {
+            width: 60px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: #fff;
+        }
 
-                createModal();
-            })();
+        #modalTable {
+            border-collapse: collapse;
+            width: 100%;
+        }
 
+        #modalTable th, #modalTable td {
+            border-left: 1px solid #444;
+            text-align: center;
+            padding: 8px;
+        }
+
+        #modalTable th:first-child, #modalTable td:first-child {
+            border-left: none;
+        }
+
+        .status-box {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            min-width: 100px;
+            vertical-align: middle;
+            margin-bottom: 5px;
+        }
+
+        .status-available {
+            background-color: #28a745;
+        }
+
+        .status-offline {
+            background-color: #dc3545;
+        }
+
+        .status-busy {
+            background-color: #ffc107;
+        }
+
+        .header-capsule {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            min-width: 120px;
+            vertical-align: middle;
+        }
+
+        .btn-two {
+            color: #FFF;
+            transition: all 0.5s;
+            position: relative;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            background-color: #dc3545;
+            text-align: center;
+        }
+        .btn-two span {
+            z-index: 2;
+            display: block;
+            position: relative;
+            text-align: center;
+            line-height: normal;
+        }
+        .btn-two::before,
+        .btn-two::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            transition: all 0.5s;
+            border: 1px solid rgba(255,255,255,0.2);
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .btn-two:hover::before {
+            transform: rotate(-45deg);
+            background-color: rgba(255,255,255,0);
+        }
+        .btn-two:hover::after {
+            transform: rotate(45deg);
+            background-color: rgba(255,255,255,0);
+        }
+
+        /* Ícone ao lado do nome do colaborador */
+        .collab-icon {
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            width: 1.5em; 
+            height: 1.5em; 
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .collab-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #fff; /* Cor do ícone */
+        }
+
+        .collab-icon:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        /* Flex container para alinhar ícone e nome */
+        .collab-name-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Alinha ao lado esquerdo */
+        }
+
+        /* Timeline Container */
+        #lineChartContainer {
+            position: absolute;
+            bottom: 20px;
+            left: 650px;
+            background-color: #222;
+            border: 1px solid #444;
+            border-radius: 10px;
+            padding: 10px;
+            color: #fff;
+            width: 400px;  /* Largura inicial */
+            height: 200px;  /* Altura inicial */
+            overflow: hidden; /* Evita que o conteúdo ultrapasse a área do gráfico */
+            resize: both;
+            z-index: 1001; /* Para garantir que o gráfico esteja acima de outros elementos do modal */
+        }
+
+        #lineChartContainer canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Estilo para o cabeçalho e fundo do gráfico */
+        #lineChartContainer header {
+            font-weight: bold;
+            text-align: center;
+            padding-bottom: 10px;
+            font-size: 14px;
+        }
+
+        /* Redimensionadores nos cantos */
+        #lineChartContainer .resize-handle {
+            position: absolute;
+                      width: 20px;
+            height: 20px;
+            background: #ccc;
+            z-index: 10;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            cursor: se-resize;
+        }
+        #lineChartContainer .resize-handle.se {
+            bottom: -10px; /* Move the icon slightly outside the bottom right */
+            right: -10px;
+        }
+        #lineChartContainer .resize-handle.nw {
+            top: -10px; /* Move the icon slightly outside the top left */
+            left: -10px;
+        }
+        #lineChartContainer .resize-handle.ne {
+            top: -10px; /* Move the icon slightly outside the top right */
+            right: -10px;
+        }
+
+        /* Botão de redimensionamento */
+        #resizeHandle {
+            position: absolute;
+            right: 20px; /* Mais à esquerda */
+            bottom: 80px; /* Mais para cima, acima do botão "Desligar Alerta" */
+            width: 20px;
+            height: 20px;
+            background: #ccc;
+            cursor: se-resize;
+            z-index: 10;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        `;
+    document.head.appendChild(style);
+
+    let fontSize = 15;
+    let graphFontSize = 14; // Tamanho de fonte para o gráfico
+    let alertThresholdMinutes = 10;
+    let currentDate = new Date().toLocaleDateString();
+    let taskCountsByHour = loadTimelineData();  // Carrega a contagem de tasks por hora do localStorage
+    let closedTasksByHour = loadClosedTaskData(); // Carrega a contagem de tasks encerradas por hora
+
+   const collaborators = [
+        { id: '#WK2ad4aa20cf6d8dc4770d1c737d29d029', name: 'Janaina Pereira' },
+        { id: '#WKa826cefc2a4cab9bd9bc646555f89175', name: 'Marina Deodato' },
+        { id: '#WK70bea86d7b208e4954b261354d0b9a37', name: 'Thaiany Sara' },
+        { id: '#WKbc92d49dffb56002d7b347463d6a2dbd', name: 'Patrícia Monteiro' },
+        { id: '#WK81f209e64aeb85182285093b371d3b23', name: 'Ariane Loureiro' },
+        { id: '#WKef989aa8b1b66b44a36b70e4919cb6f9', name: 'Emanuelly F.' },
+        { id: '#WK7783140c8c8b5574cbda415a29eb7663', name: 'Alesandra Nascimento' },
+        { id: '#WK1483b43f8e92ab41c29aab7e9e930b6a', name: 'Rafael Bandeira' },
+    ];
+   const iconPaths = {
+        fairy: 'M18 2L15 4L12 6L9 4L6 2L8 8L2 10L8 12L2 14L8 16L6 22L9 20L12 18L15 20L18 22L16 16L22 14L16 12L22 10L16 8L18 2Z',
+        robot: 'M7 2L7 5L4 5C3.447 5 3 5.447 3 6L3 10L1 10L1 14L3 14L3 18C3 18.553 3.447 19 4 19L7 19L7 22L17 22L17 19L20 19C20.553 19 21 18.553 21 18L21 14L23 14L23 10L21 10L21 6C21 5.447 20.553 5 20 5L17 5L17 2L7 2ZM7 7L11 7L11 10L7 10L7 7ZM13 7L17 7L17 10L13 10L13 7ZM6 13C6.552 13 7 13.448 7 14C7 14.552 6.552 15 6 15C5.448 15 5 14.552 5 14C5 13.448 5.448 13 6 13ZM18 13C18.552 13 19 13.448 19 14C19 14.552 18.552 15 18 15C17.448 15 17 14.552 17 14C17 13.448 17.448 13 18 13ZM12 14L12 16L8 16L8 18L16 18L16 16L12 16L12 14Z',
+        greek: 'M12 1L12 3.5L8 3.5L8 5.5L16 5.5L16 3.5L12 3.5L12 1ZM6.125 6.75L5.5 7.5L5.5 13.5L3.5 13.5L3.5 15.5L6.625 15.5C7.364 17.165 8.898 18.5 10.75 18.5C12.602 18.5 14.136 17.165 14.875 15.5L18 15.5L18 13.5L16 13.5L16 7.5L15.375 6.75L6.125 6.75ZM7.5 9.5L10.5 9.5L10.5 13.25C10.5 13.25 10.5 14.25 9.5 14.25C8.5 14.25 8.5 13.25 8.5 13.25L8.5 12L7.5 12L7.5 9.5ZM16.5 17.5L16.5 20.5L7.5 20.5L7.5 17.5L5.5 17.5L5.5 22.5L18.5 22.5L18.5 17.5L16.5 17.5Z',
+    };
+
+    const previousChatCounts = {};
+    const newTaskTimes = {};
+    const closedTaskTimes = {};
+    const newTaskStyles = {};
+    const closedTaskStyles = {};
+    let clientsServed = {};
+    const closedTaskCounts = {};
+    let isAlertActive = true;
+    let sortColumnIndex = -1;
+    let sortDirection = 'asc';
+
+    function createModal() {
+        const modal = document.createElement('div');
+        modal.id = 'modal';
+        modal.style.position = 'fixed';
+        modal.style.top = '50px';
+        modal.style.left = '50px';
+        modal.style.width = '1100px';
+        modal.style.height = '600px';
+        modal.style.backgroundColor = '#1d1d1d';
+        modal.style.border = '1px solid #000';
+        modal.style.padding = '20px';
+        modal.style.zIndex = '1000';
+        modal.style.overflow = 'hidden';
+        modal.style.borderRadius = '10px';
+        modal.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.7)';
+        modal.style.color = '#fff';
+        modal.style.fontSize = `${fontSize}px`;
+        modal.style.resize = 'both'; // Permitir redimensionamento do modal
+
+        const modalHeader = document.createElement('div');
+        modalHeader.id = 'modalHeader';
+        modalHeader.style.cursor = 'move';
+        modalHeader.style.padding = '10px';
+        modalHeader.style.backgroundColor = '#333';
+        modalHeader.style.borderRadius = '10px 10px 0 0';
+        modal.appendChild(modalHeader);
+        const closeButton = document.createElement('button');
+        closeButton.id = 'closeButton';
+        closeButton.innerText = 'Fechar';
+        closeButton.onclick = function() {
+            document.body.removeChild(modal);
         };
+        modalHeader.appendChild(closeButton);
+        const modalContent = document.createElement('div');
+        modalContent.id = 'modalContent';
+      modalContent.style.overflowY = 'auto'; // Adiciona rolagem vertical
+        modal.appendChild(modalContent);
+        
+        const modalTable = document.createElement('table');
+        modalTable.id = 'modalTable';
+        modalTable.style.width = '100%';
+        modalContent.appendChild(modalTable);
+        
+        const thead = document.createElement('thead');
+        modalTable.appendChild(thead);
+
+        thead.innerHTML = `
+    <tr>
+        <th onclick="sortTable(0)" style="cursor:pointer;">
+            <div class="header-capsule">Expert &#9650;&#9660;</div>
+            </th>
+                <th onclick="sortTable(1)" style="cursor:pointer;">
+                    <div class="header-capsule">Status de atividade &#9650;&#9660;</div>
+                </th>
+                <th onclick="sortTable(2)" style="cursor:pointer;">
+                    <div class="header-capsule">Tasks de WhatsApp &#9650;&#9660;</div>
+                </th>
+                <th onclick="sortTable(3)" style="cursor:pointer;">
+                    <div class="header-capsule">Tasks de Chat &#9650;&#9660;</div>
+                </th>
+                <th onclick="sortTable(4)" style="cursor:pointer;">
+                    <div class="header-capsule">Finalizando &#9650;&#9660;</div>
+                </th>
+                <th onclick="sortTable(5)" style="cursor:pointer;">
+                    <div class="header-capsule">Novas tarefas &#9650;&#9660;</div>
+                </th>
+                <th onclick="sortTable(6)" style="cursor:pointer;">
+                    <div class="header-capsule">Tarefas encerradas &#9650;&#9660;</div>
+                </th>
+                <th onclick="sortTable(7)" style="cursor:pointer;">
+                    <div class="header-capsule">Encerrados &#9650;&#9660;</div>
+                </th>
+            </tr>
+        `;
+        
+        const tbody = document.createElement('tbody');
+        modalTable.appendChild(tbody);
+
+        const fontControlContainer = document.createElement('div');
+        fontControlContainer.id = 'fontControlContainer';
+        modalHeader.appendChild(fontControlContainer);
+
+        const increaseButton = document.createElement('button');
+        increaseButton.textContent = 'A+';
+        increaseButton.onclick = increaseFontSize;
+        styleButton(increaseButton);
+        fontControlContainer.appendChild(increaseButton);
+
+        const decreaseButton = document.createElement('button');
+        decreaseButton.textContent = 'A-';
+        decreaseButton.onclick = decreaseFontSize;
+        styleButton(decreaseButton);
+        fontControlContainer.appendChild(decreaseButton);
+
+        const resetButton = document.createElement('button');
+        resetButton.id = 'resetButton';
+        resetButton.textContent = 'Zerar Gráfico';
+        styleButton(resetButton);
+        resetButton.onclick = function() {
+            const response = confirm('Deseja zerar o gráfico ou os encerrados?');
+            if (response) {
+                resetData();
+            }
+        };        modal.appendChild(resetButton);
+
+        const alertToggleButton = document.createElement('div');
+        alertToggleButton.id = 'alertToggleButton';
+        alertToggleButton.className = 'btn-two';
+        updateAlertButtonStyle(alertToggleButton);
+        alertToggleButton.onclick = function() {
+            toggleAlert();
+            updateAlertButtonStyle(alertToggleButton);
+        };
+        modal.appendChild(alertToggleButton);
+
+        const slotsButton = document.createElement('div');
+        slotsButton.id = 'slotsButton';
+        slotsButton.className = 'btn-two';
+        slotsButton.innerHTML = '<span>Slots</span>';
+        slotsButton.onclick = function() {
+            window.open('https://flex.twilio.com/meutudo/users/', '_blank');
+        };
+        modal.appendChild(slotsButton);
+
+        const openConversationsButton = document.createElement('div');
+        openConversationsButton.id = 'openConversationsButton';
+        openConversationsButton.className = 'btn-two';
+        openConversationsButton.innerHTML = '<span>Flex</span>';
+        openConversationsButton.onclick = function() {
+            window.open('https://flex.twilio.com/teams/workers/', '_blank');
+        };
+        modal.appendChild(openConversationsButton);
+
+        const agendaButton = document.createElement('div');
+        agendaButton.id = 'agendaButton';
+        agendaButton.className = 'btn-two';
+        agendaButton.innerHTML = '<span>Agenda</span>';
+        agendaButton.onclick = function() {
+            window.open('https://calendar.google.com/calendar/u/0/r', '_blank');
+        };
+        modal.appendChild(agendaButton);
+
+        const alertThresholdContainer = document.createElement('div');
+        alertThresholdContainer.id = 'alertThresholdContainer';
+        modalHeader.appendChild(alertThresholdContainer);
+
+        const alertThresholdLabel = document.createElement('label');
+        alertThresholdLabel.textContent = 'Tempo para alerta (min):';
+        alertThresholdContainer.appendChild(alertThresholdLabel);
+
+        const alertThresholdInput = document.createElement('input');
+        alertThresholdInput.type = 'number';
+        alertThresholdInput.value = alertThresholdMinutes;
+        alertThresholdInput.min = 1;
+        alertThresholdInput.id = 'alertThresholdInput';
+        alertThresholdInput.onchange = function() {
+            alertThresholdMinutes = parseInt(alertThresholdInput.value, 10);
+        };
+        alertThresholdContainer.appendChild(alertThresholdInput);
+
+        // Adiciona o container do gráfico de linhas centralizado
+        const lineChartContainer = document.createElement('div');
+        lineChartContainer.id = 'lineChartContainer';
+        modal.appendChild(lineChartContainer);
+
+        // Criar o canvas para o gráfico de linhas
+        const canvas = document.createElement('canvas');
+        lineChartContainer.appendChild(canvas);
+
+        // Adicionar handles de redimensionamento nos cantos
+        const nwHandle = document.createElement('div');
+        nwHandle.className = 'resize-handle nw';
+        lineChartContainer.appendChild(nwHandle);
+
+        const neHandle = document.createElement('div');
+        neHandle.className = 'resize-handle ne';
+        lineChartContainer.appendChild(neHandle);
+
+        const swHandle = document.createElement('div');
+        swHandle.className = 'resize-handle sw';
+        lineChartContainer.appendChild(swHandle);
+
+        const seHandle = document.createElement('div');
+        seHandle.className = 'resize-handle se';
+        lineChartContainer.appendChild(seHandle);
+
+        makeResizable(lineChartContainer, nwHandle, 'nw');
+        makeResizable(lineChartContainer, neHandle, 'ne');
+        makeResizable(lineChartContainer, swHandle, 'sw');
+        makeResizable(lineChartContainer, seHandle, 'se');
+        // Adicionar botão de redimensionamento na parte inferior do modal
+        const resizeHandle = document.createElement('div');
+        resizeHandle.id = 'resizeHandle';
+        resizeHandle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            let startY = e.clientY;
+            let startHeight = modalContent.offsetHeight;
+
+            function doDrag(e) {
+                modalContent.style.height = (startHeight + e.clientY - startY) + 'px';
+            }
+
+            function stopDrag() {
+                document.removeEventListener('mousemove', doDrag, false);
+                document.removeEventListener('mouseup', stopDrag, false);
+            }
+
+            document.addEventListener('mousemove', doDrag, false);
+            document.addEventListener('mouseup', stopDrag, false);
+        }, false);
+        modal.appendChild(resizeHandle);
+        document.body.appendChild(modal);
+
+        loadSavedData();
+        clearOldData();
+        updateModalContent();
+
+        // Desenhar o gráfico de linhas após o modal ser carregado
+        setTimeout(() => {
+            drawLineChart(canvas);
+        }, 100);
+
+        setInterval(updateModalContent, 1000);
+
+        makeDraggable(modal, modalHeader);
+    }
+
+    function drawLineChart(canvas) {
+        const ctx = canvas.getContext('2d');
+
+        // Verifica se o canvas está disponível
+        if (!canvas || !ctx) return;
+
+        // Limpar o canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Definir o tamanho do canvas com base no tamanho do container
+        const container = document.getElementById('lineChartContainer');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+
+        // Limite máximo para o valor no eixo Y (topo do gráfico)
+        const maxTaskCount = Math.max(...taskCountsByHour, ...closedTasksByHour);
+        const yMax = maxTaskCount * 1.2; // Adiciona 20% para dar espaço extra para a legenda
+
+        const padding = 40; // Aumenta o padding para dar mais espaço às legendas no topo
+        const graphHeight = canvas.height - padding * 1.5; // Ajusta a altura do gráfico
+        const graphWidth = canvas.width - padding;
+
+        const graphBottom = canvas.height - padding; // Posição de Y mais baixa para o gráfico
+
+        // Desenhar o gráfico de linhas para novas tarefas (azul)
+        ctx.beginPath();
+        ctx.moveTo(padding, graphBottom - (taskCountsByHour[0] / yMax) * graphHeight); // Primeiro ponto
+        for (let i = 1; i < taskCountsByHour.length; i++) {
+            ctx.lineTo(
+                padding + i * (graphWidth / (taskCountsByHour.length - 1)),
+                graphBottom - (taskCountsByHour[i] / yMax) * graphHeight
+            ); // Próximos pontos
+        }
+        ctx.strokeStyle = '#00CED1'; // Cor da linha para novas tarefas
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Desenhar o gráfico de linhas para tarefas encerradas (vermelho)
+        ctx.beginPath();
+        ctx.moveTo(padding, graphBottom - (closedTasksByHour[0] / yMax) * graphHeight); // Primeiro ponto
+        for (let i = 1; i < closedTasksByHour.length; i++) {
+            ctx.lineTo(
+                padding + i * (graphWidth / (closedTasksByHour.length - 1)),
+                graphBottom - (closedTasksByHour[i] / yMax) * graphHeight
+            ); // Próximos pontos
+        }
+        ctx.strokeStyle = '#FF6347'; // Cor da linha para tarefas encerradas (vermelho)
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Adicionar pontos nas interseções para novas tarefas
+        for (let i = 0; i < taskCountsByHour.length; i++) {
+            ctx.beginPath();
+            ctx.arc(
+                padding + i * (graphWidth / (taskCountsByHour.length - 1)),
+                graphBottom - (taskCountsByHour[i] / yMax) * graphHeight,
+                3,
+                0,
+                2 * Math.PI
+            );
+            ctx.fillStyle = '#00CED1';
+            ctx.fill();
+        }
+
+        // Adicionar pontos nas interseções para tarefas encerradas
+        for (let i = 0; i < closedTasksByHour.length; i++) {
+            ctx.beginPath();
+            ctx.arc(
+                padding + i * (graphWidth / (closedTasksByHour.length - 1)),
+                graphBottom - (closedTasksByHour[i] / yMax) * graphHeight,
+                3,
+                0,
+                2 * Math.PI
+            );
+            ctx.fillStyle = '#FF6347';
+            ctx.fill();
+        }
+
+        // Adicionar legenda para novas tarefas
+        ctx.fillStyle = '#00CED1'; // Cor da legenda para novas tarefas
+        ctx.font = `${graphFontSize}px Arial`;
+        for (let i = 0; i < taskCountsByHour.length; i++) {
+            const xPosition = padding + i * (graphWidth / (taskCountsByHour.length - 1));
+            const yPosition = graphBottom - (taskCountsByHour[i] / yMax) * graphHeight;
+
+            // Adiciona o horário na posição X correspondente
+            ctx.fillText(`${9 + i}:00`, xPosition - 15, graphBottom + 20);
+
+            // Adiciona a contagem de tasks na posição Y correspondente
+            ctx.fillText(taskCountsByHour[i], xPosition - 15, yPosition - 10);  // Ajusta a posição Y da legenda para não cortar
+        }
+
+        // Adicionar legenda para tarefas encerradas
+        ctx.fillStyle = '#FF6347'; // Cor da legenda para tarefas encerradas
+        ctx.font = `${graphFontSize}px Arial`;
+        for (let i = 0; i < closedTasksByHour.length; i++) {
+            const xPosition = padding + i * (graphWidth / (closedTasksByHour.length - 1));
+            const yPosition = graphBottom - (closedTasksByHour[i] / yMax) * graphHeight;
+
+            // Adiciona a contagem de tasks encerradas na posição Y correspondente
+            ctx.fillText(closedTasksByHour[i], xPosition - 15, yPosition - 10);  // Ajusta a posição Y da legenda para não cortar
+        // Adicionar legenda para o gráfico
+    const legendX = canvas.width - 160; // Posição da legenda no canto direito do gráfico
+    const legendY = 30; // Posição da legenda no topo
+
+    // Desenhar retângulo da legenda
+    ctx.fillStyle = '#242424';
+    ctx.fillRect(legendX - 10, legendY - 20, 150, 70);
+
+    // Texto da legenda
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '14px Arial';
+    ctx.fillText('Gráfico de tarefas:', legendX, legendY);
+
+    // Legenda para Novas Tarefas
+    ctx.fillStyle = '#00CED1';
+    ctx.fillRect(legendX, legendY + 10, 10, 10);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Novas Tarefas', legendX + 20, legendY + 20);
+
+    // Legenda para Tarefas Encerradas
+    ctx.fillStyle = '#FF6347';
+    ctx.fillRect(legendX, legendY + 30, 10, 10);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('Tarefas Encerradas', legendX + 20, legendY + 40);
+  }
+}
+    
+
+    function styleButton(button) {
+        button.style.padding = '8px 12px';
+        button.style.backgroundColor = '#00CED1';
+        button.style.border = 'none';
+        button.style.borderRadius = '8px';
+        button.style.color = '#000';
+        button.style.fontWeight = 'bold';
+        button.style.cursor = 'pointer';
+        button.style.transition = 'background-color 0.3s, transform 0.2s';
+
+        button.onmouseover = function() {
+            button.style.backgroundColor = '#20B2AA';
+        };
+        button.onmouseout = function() {
+            button.style.backgroundColor = '#00CED1';
+        };
+
+        button.onmousedown = function() {
+            button.style.transform = 'scale(0.95)';
+        };
+        button.onmouseup = function() {
+            button.style.transform = 'scale(1)';
+        };
+    }
+
+    function increaseFontSize() {
+        fontSize += 2;
+        updateFontSize();
+    }
+
+    function decreaseFontSize() {
+        if (fontSize > 10) {
+            fontSize -= 2;
+            updateFontSize();
+        }
+    }
+
+    function updateFontSize() {
+        const modal = document.getElementById('modal');
+        modal.style.fontSize = `${fontSize}px`;
+        adjustModalSize();
+    }
+
+    function increaseGraphFontSize() {
+        graphFontSize += 2;
+        updateGraphFontSize();
+    }
+
+    function decreaseGraphFontSize() {
+        if (graphFontSize > 10) {
+            graphFontSize -= 2;
+            updateGraphFontSize();
+        }
+    }
+
+    function updateGraphFontSize() {
+        drawLineChart(document.querySelector('#lineChartContainer canvas'));
+    }
+
+    function updateAlertButtonStyle(button) {
+        const span = document.createElement('span');
+        if (isAlertActive) {
+            span.textContent = 'Desligar Alerta';
+            button.style.backgroundColor = '#dc3545';
+        } else {
+            span.textContent = 'Ligar Alerta';
+            button.style.backgroundColor = '#28a745';
+        }
+        button.innerHTML = '';
+        button.appendChild(span);
+    }
+
+    function handleMouseDown(e) {
+        if (e.target.id === 'modalHeader') {
+            dragMouseDown(e);
+        } else if (e.target.id === 'resizeHandle') {
+            resizeMouseDown(e);
+        }
+    }
+
+    function dragMouseDown(e) {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const modal = document.getElementById('modal');
+        startLeft = modal.offsetLeft;
+        startTop = modal.offsetTop;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = dragElement;
+    }
+
+    function dragElement(e) {
+        if (!isDragging) return;
+        const modal = document.getElementById('modal');
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        modal.style.left = startLeft + dx + 'px';
+        modal.style.top = startTop + dy + 'px';
+    }
+
+    function closeDragElement() {
+        isDragging = false;
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+
+    function resizeMouseDown(e) {
+        e.preventDefault();
+        isResizing = true;
+        const modal = document.getElementById('modal');
+        startWidth = modal.offsetWidth;
+        startHeight = modal.offsetHeight;
+        startX = e.clientX;
+        startY = e.clientY;
+        document.onmouseup = closeResizeElement;
+        document.onmousemove = resizeElement;
+    }
+
+    function resizeElement(e) {
+        if (!isResizing) return;
+        const modal = document.getElementById('modal');
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        modal.style.width = startWidth + dx + 'px';
+        modal.style.height = startHeight + dy + 'px';
+        updateModalContent();
+    }
+
+    function closeResizeElement() {
+        isResizing = false;
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+
+    function updateModalContent() {
+        const modalTable = document.getElementById('modalTable');
+        if (!modalTable) return;
+
+        const tbody = modalTable.querySelector('tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        const nowDate = new Date().toLocaleDateString();
+
+        collaborators.forEach(collab => {
+            const elements = document.querySelectorAll(`${collab.id} > .MuiTableCell-root > .Twilio`);
+            const { whatsappCount, chatCount } = countTasks(elements);
+            const status = getStatus(collab.id);
+            const newTaskTime = registerNewTask(collab.name, whatsappCount + chatCount);
+            const closedTaskTime = registerClosedTask(collab.name, whatsappCount + chatCount);
+            const finalizingChats = getFinalizingChats(collab.id);
+            const clients = clientsServed[collab.name] ? clientsServed[collab.name][nowDate] || 0 : 0;
+            const closedCount = closedTaskCounts[collab.name] || 0;
+
+            const newRow = tbody.insertRow();
+
+            const statusClass = getStatusClass(status);
+            const statusBox = `<div class="status-box ${statusClass}">${status}</div>`;
+
+            const whatsappColumnContent = `
+                <span style="color: #25D366; font-weight: bold; font-size: 1em; transition: transform 0.3s ease;">
+                    ${whatsappCount}
+                </span>
+            `;
+
+            const collabIcon = `
+                <div class="collab-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
+                    </svg>
+                </div>
+            `;
+
+            newRow.innerHTML = `
+                <td><div class="collab-name-container">${collabIcon}<span>${collab.name}</span></div></td>
+                <td>${statusBox}</td>
+                <td>${whatsappColumnContent}</td>
+                <td>${chatCount}</td>
+                <td>${finalizingChats}</td>
+                <td style="${newTaskStyles[collab.name] || ''}">${newTaskTimes[collab.name] || 'Sem registro'}</td>
+                <td style="${closedTaskStyles[collab.name] || ''}">${closedTaskTimes[collab.name] || 'Sem registro'}</td>
+                <td>${closedCount}</td>
+            `;
+
+            centerAlignRow(newRow);
+
+            if (isAlertActive && newTaskTimes[collab.name] && hasMoreThanXMinutes(newTaskTimes[collab.name], alertThresholdMinutes)) {
+                newRow.cells[5].classList.add('blinking');
+            }
+
+            newRow.querySelector('span').onmouseover = function() {
+                this.style.transform = 'scale(1.2)';
+            };
+            newRow.querySelector('span').onmouseout = function() {
+                this.style.transform = 'scale(1)';
+            };
+        });
+
+        if (sortColumnIndex >= 0) {
+            sortTable(sortColumnIndex, false);
+        }
+
+        adjustModalSize();
+
+        // Atualiza o gráfico de linhas
+        drawLineChart(document.querySelector('#lineChartContainer canvas'));
+    }
+
+    function countTasks(elements) {
+        let whatsappCount = 0;
+        let chatCount = 0;
+
+        elements.forEach(element => {
+            const whatsappElements = element.querySelectorAll('.Twilio-Icon-Whatsapp');
+            const chatElements = element.querySelectorAll('.Twilio-Icon-ChatGeneral');
+
+            whatsappCount += whatsappElements.length;
+            chatCount += chatElements.length;
+        });
+
+        return { whatsappCount, chatCount };
+    }
+
+    function getStatus(collaboratorId) {
+        const statusElement = document.querySelector(`${collaboratorId} .Twilio-UserCard-InfoContainer-SecondLine span`);
+        return statusElement ? statusElement.textContent : 'Unknown';
+    }
+
+    function getStatusClass(status) {
+        if (status.includes('Disponível')) {
+            return 'status-available';
+        } else if (status.includes('Offline')) {
+            return 'status-offline';
+        } else {
+            return 'status-busy';
+        }
+    }
+
+    function registerNewTask(name, currentCount) {
+        const previousCount = previousChatCounts[name] || 0;
+        if (currentCount > previousCount) {
+            const now = new Date();
+            const currentTime = now.toLocaleTimeString();
+            newTaskTimes[name] = currentTime;
+            newTaskStyles[name] = 'color: green;';
+            previousChatCounts[name] = currentCount;
+            saveData();
+
+            // Adiciona a contagem ao gráfico na hora correspondente
+            const currentHour = now.getHours();
+            if (currentHour >= 9 && currentHour <= 18) {
+                taskCountsByHour[currentHour - 9]++;
+            }
+
+            saveTimelineData(); // Salva a contagem atualizada no localStorage
+
+            return newTaskTimes[name];
+        }
+        return null;
+    }
+
+    function registerClosedTask(name, currentCount) {
+        const previousCount = previousChatCounts[name] || 0;
+        if (currentCount < previousCount) {
+            const now = new Date();
+            const currentTime = now.toLocaleTimeString();
+            closedTaskTimes[name] = currentTime;
+            closedTaskStyles[name] = 'color: red;';
+            previousChatCounts[name] = currentCount;
+            closedTaskCounts[name] = (closedTaskCounts[name] || 0) + (previousCount - currentCount);
+
+            // Adiciona a contagem ao gráfico de tarefas encerradas na hora correspondente
+            const currentHour = now.getHours();
+            if (currentHour >= 9 && currentHour <= 18) {
+                closedTasksByHour[currentHour - 9]++;
+            }
+
+            saveData();
+            saveClosedTaskData(); // Salva a contagem atualizada no localStorage
+            return closedTaskTimes[name];
+        }
+        return null;
+    }
+
+    function getFinalizingChats(collaboratorId) {
+        const finalizingElements = document.querySelectorAll(`${collaboratorId} .Twilio.Twilio-TaskCardList.css-nu3u7a.css-158fp1w span.Twilio`);
+        let finalizingChats = 0;
+        
+        finalizingElements.forEach(element => {
+            if (element.textContent.includes('Finalizando')) {
+                finalizingChats++;
+            }
+        });
+        
+        return finalizingChats;
+    }
+
+    function hasMoreThanXMinutes(taskTime, thresholdMinutes) {
+        const now = new Date();
+        const [taskHours, taskMinutes, taskSeconds] = taskTime.split(':').map(Number);
+
+        const nowHours = now.getHours();
+        const nowMinutes = now.getMinutes();
+        const nowSeconds = now.getSeconds();
+
+        const taskTotalMinutes = taskHours * 60 + taskMinutes + taskSeconds / 60;
+        const nowTotalMinutes = nowHours * 60 + nowMinutes + nowSeconds / 60;
+
+        return nowTotalMinutes - taskTotalMinutes > thresholdMinutes;
+    }
+
+    function adjustModalSize() {
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const modalTable = document.getElementById('modalTable');
+        modalContent.style.fontSize = `${fontSize}px`;
+        modalTable.style.borderCollapse = 'collapse';
+        modalTable.style.width = '100%';
+        const thElements = modalTable.getElementsByTagName('th');
+        for (let th of thElements) {
+            th.style.fontWeight = 'bold';
+            th.style.color = '#000';
+            th.style.borderLeft = '1px solid #444';
+            th.style.padding = '8px';
+            th.style.textAlign = 'center';
+            th.style.cursor = 'pointer';
+        }
+        const tdElements = modalTable.getElementsByTagName('td');
+        for (let td of tdElements) {
+            td.style.borderLeft = '1px solid #444';
+            td.style.padding = '8px';
+            td.style.textAlign = 'center';
+        }
+    }
+
+    function centerAlignRow(row) {
+        const cells = row.getElementsByTagName('td');
+        for (let cell of cells) {
+            cell.style.textAlign = 'center';
+        }
+    }
+
+    function loadSavedData() {
+        const savedData = localStorage.getItem('collaboratorData');
+        if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            for (let key in parsedData) {
+                if (parsedData.hasOwnProperty(key)) {
+                    if (key === 'previousChatCounts') {
+                        Object.assign(previousChatCounts, parsedData[key]);
+                    } else if (key === 'newTaskTimes') {
+                        Object.assign(newTaskTimes, parsedData[key]);
+                    } else if (key === 'closedTaskTimes') {
+                        Object.assign(closedTaskTimes, parsedData[key]);
+                    } else if (key === 'newTaskStyles') {
+                        Object.assign(newTaskStyles, parsedData[key]);
+                    } else if (key === 'closedTaskStyles') {
+                        Object.assign(closedTaskStyles, parsedData[key]);
+                    } else if (key === 'clientsServed') {
+                        Object.assign(clientsServed, parsedData[key]);
+                    } else if (key === 'closedTaskCounts') {
+                        Object.assign(closedTaskCounts, parsedData[key]);
+                    }
+                }
+            }
+        }
+    }
+
+    function saveData() {
+        const dataToSave = {
+            previousChatCounts,
+            newTaskTimes,
+            closedTaskTimes,
+            newTaskStyles,
+            closedTaskStyles,
+            clientsServed,
+            closedTaskCounts
+        };
+        localStorage.setItem('collaboratorData', JSON.stringify(dataToSave));
+    }
+
+    function clearOldData() {
+        const nowDate = new Date().toLocaleDateString();
+        if (currentDate !== nowDate) {
+            currentDate = nowDate;
+            for (let collabName in clientsServed) {
+                if (clientsServed.hasOwnProperty(collabName)) {
+                    clientsServed[collabName][nowDate] = 0;
+                }
+            }
+            saveData();
+        }
+    }
+
+    function resetData() {
+        for (let collabName in collaborators) {
+            if (collaborators.hasOwnProperty(collabName)) {
+                newTaskTimes[collabName] = null;
+                closedTaskTimes[collabName] = null;
+                closedTaskCounts[collabName] = 0;
+                newTaskStyles[collabName] = '';
+                closedTaskStyles[collabName] = '';
+            }
+        }
+        taskCountsByHour = Array(10).fill(0); // Reseta a timeline
+        closedTasksByHour = Array(10).fill(0); // Reseta a timeline de tarefas encerradas
+        saveData();
+        saveTimelineData(); // Reseta o armazenamento da timeline
+        saveClosedTaskData(); // Reseta o armazenamento da timeline de tarefas encerradas
+        updateModalContent();
+    }
+
+    function toggleAlert() {
+        isAlertActive = !isAlertActive;
+        if (!isAlertActive) {
+            const blinkingCells = document.querySelectorAll('.blinking');
+            blinkingCells.forEach(cell => {
+                cell.classList.remove('blinking');
+            });
+        }
+    }
+
+    window.resetDailyStats = function() {
+        const nowDate = new Date().toLocaleDateString();
+        currentDate = nowDate;
+        for (let collabName in clientsServed) {
+            if (clientsServed.hasOwnProperty(collabName)) {
+                clientsServed[collabName][nowDate] = 0;
+            }
+        }
+        saveData();
+        updateModalContent();
+    };
+
+    function saveTimelineData() {
+        localStorage.setItem('taskCountsByHour', JSON.stringify(taskCountsByHour));
+    }
+
+    function loadTimelineData() {
+        const savedData = localStorage.getItem('taskCountsByHour');
+        return savedData ? JSON.parse(savedData) : Array(10).fill(0);
+    }
+
+    function saveClosedTaskData() {
+        localStorage.setItem('closedTasksByHour', JSON.stringify(closedTasksByHour));
+    }
+
+    function loadClosedTaskData() {
+        const savedData = localStorage.getItem('closedTasksByHour');
+        return savedData ? JSON.parse(savedData) : Array(10).fill(0);
+    }
+
+    function makeResizable(container, handle, direction) {
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startWidth = parseInt(document.defaultView.getComputedStyle(container).width, 10);
+            const startHeight = parseInt(document.defaultView.getComputedStyle(container).height, 10);
+
+            function doDrag(e) {
+                if (direction === 'ne' || direction === 'se') {
+                    container.style.width = startWidth + (e.clientX - startX) + 'px';
+                } else if (direction === 'nw' || direction === 'sw') {
+                    container.style.width = startWidth - (e.clientX - startX) + 'px';
+                }
+
+                if (direction === 'se' || direction === 'sw') {
+                    container.style.height = startHeight + (e.clientY - startY) + 'px';
+                } else if (direction === 'ne' || direction === 'nw') {
+                    container.style.height = startHeight - (e.clientY - startY) + 'px';
+                }
+
+                drawLineChart(container.querySelector('canvas'));
+            }
+
+            function stopDrag() {
+                document.documentElement.removeEventListener('mousemove', doDrag, false);
+                document.documentElement.removeEventListener('mouseup', stopDrag, false);
+            }
+
+            document.documentElement.addEventListener('mousemove', doDrag, false);
+            document.documentElement.addEventListener('mouseup', stopDrag, false);
+        }, false);
+    }
+
+    createModal();
+
+})();
+
+function sortTable(n, toggleDirection = true) {
+    const table = document.getElementById("modalTable");
+    let rows, switching, i, x, y, shouldSwitch;
+
+    switching = true;
+    if (toggleDirection) {
+        sortDirection = (sortDirection === 'asc') ? 'desc' : 'asc';
+    }
+
+    while (switching) {
+        switching = false;
+        rows = table.rows;
+
+        for (i = 1; i < rows.length - 1; i++) {
+            shouldSwitch = false;
+            x = rows[i].getElementsByTagName("TD")[n];
+            y = rows[i + 1].getElementsByTagName("TD")[n];
+
+            if (sortDirection === "asc") {
+                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            } else if (sortDirection === "desc") {
+                if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+        }
+
+        if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+        }
+    }
+
+    sortColumnIndex = n;
+}
+
+// Função para tornar o modal arrastável
+function makeDraggable(modal, header) {
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    header.onmousedown = function(e) {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = modal.offsetLeft;
+        startTop = modal.offsetTop;
+
+        document.onmousemove = function(e) {
+            if (isDragging) {
+                let dx = e.clientX - startX;
+                let dy = e.clientY - startY;
+                modal.style.left = startLeft + dx + 'px';
+                modal.style.top = startTop + dy + 'px';
+            }
+        };
+
+        document.onmouseup = function() {
+            isDragging = false;
+            document.onmousemove = null;
+            document.onmouseup = null;
+       };
+    };
+}
+
     </script>
 </head>
 <body>
